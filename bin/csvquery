@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+
+"""
+Execute a SELECT query against a CSV file, as if it were a table in an SQL database.
+"""
+
+import csvquerytool
+import logging
+import optparse
+
+if __name__ == '__main__':
+
+    parser = optparse.OptionParser(description=__doc__.strip(), usage="%prog [-q query] csv [csv2 csv3 ...]")
+    parser.add_option("-q", "--query", dest="query", help="query to execute", metavar="SQL")
+    parser.add_option("-v", "--verbose", dest="verbose", help="verbose mode", action="store_true")
+    (options, csv_files) = parser.parse_args()
+
+    if len(csv_files) == 0:
+        parser.error("You must specify one or more input CSV files")
+
+    if options.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+
+    if options.query:
+        csvquerytool.run_query(options.query, csv_files)
+    else:
+        csvquerytool.interactive_console(csv_files)
