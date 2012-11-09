@@ -3,6 +3,7 @@ from distutils.core import setup
 setup(
     name='csvquerytool',
     version='0.0.1',
+    home_page='http://bitbucket.org/acordiner/csvquerytool/',
     author='Alister Cordiner',
     author_email='alister@cordiner.net',
     packages=['csvquerytool', 'csvquerytool.test'],
