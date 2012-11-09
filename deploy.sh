@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -e
+set -o pipefail
+
 VERSION_FILE="VERSION.txt"
 
 if [ -f "$VERSION_FILE" ]; then
