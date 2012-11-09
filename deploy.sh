@@ -6,7 +6,7 @@ set -o pipefail
 VERSION_FILE="VERSION.txt"
 
 if [ -f "$VERSION_FILE" ]; then
-    deployed_version=$(cat "$DEPLOYED_TAG_FILE")
+    deployed_version=$(cat "$VERSION_FILE")
 else
     deployed_version=""
 fi
