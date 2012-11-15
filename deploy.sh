@@ -18,7 +18,14 @@ else
     package_version=$(python setup.py --version)
     if [ "$package_version" = "$latest_version" ]; then
         echo "Releasing new production version: $latest_version"
-        python setup.py sdist upload
+        distutils_output=$(python setup.py sdist upload 2>&1)
+        echo "$distutils_output"
+        if echo "$distutils_output" | grep "^Upload failed" >/dev/null; then
+            # setup.py returns an exit status of 0 even if the upload fails, so need to check the output
+            # see distutils issue #245: https://bitbucket.org/tarek/distribute/issue/245/python-setuppy-should-return-a-non-zero
+            echo "Error: pypi upload failed (if you manually upload the file, remember to update $VERSION_FILE)" >&2
+            exit 1
+        fi
         echo "$latest_version" > $VERSION_FILE
     else
         echo "Error: package version ($package_version) != SCM tag ($latest_version); did you update setup.py and .hgtags?" >&2
