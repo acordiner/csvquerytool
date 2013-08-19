@@ -135,12 +135,41 @@ def format_row(row, encoding=DEFAULT_ENCODING):
             row_formatted.append(unicode(cell))
     return [cell.encode(encoding) if hasattr(cell, 'encode') else cell for cell in row_formatted]
 
+def choose_table_names(csv_files, based_on_filename=True):
+    """
+    Function that chooses unique table names for CSV files that are going to be imported. The table names
+    are based on the CSV file names if based_on_filename = True, otherwise they are just named "csv", "csv2",
+    "csv3", etc.
+
+    TODO: this function should also ensure they are valid SQL table names
+
+    >>> choose_table_names(['/some/path/foo.csv', '/another/path/bar.csv'], based_on_filename=False)
+    ['csv', 'csv2']
+    >>> choose_table_names(['/some/path/foo.csv', '/another/path/bar.csv'], based_on_filename=True)
+    ['foo', 'bar']
+    >>> choose_table_names(['/some/path/foobar.csv', '/another/path/foobar.csv'], based_on_filename=True)
+    ['foobar', 'foobar2']
+    """
+    table_names = list()
+    for csv_file in csv_files:
+        if based_on_filename:
+            table_base_name = os.path.splitext(os.path.basename(csv_file))[0]
+        else:
+            table_base_name = 'csv'
+        for n in itertools.count():
+            table_name = '%s%d' % (table_base_name, n + 1) if n > 0 else table_base_name
+            if table_name not in table_names:
+                break
+        table_names.append(table_name)
+    return table_names
+
 def run_query(query, csv_files, output_fh=sys.stdout):
 
     db_conn = sqlite3.connect(':memory:')
     db_cur = db_conn.cursor()
-    for n, csv_file in enumerate(csv_files):
-        create_table(csv_file, db_cur, 'csv%d' % (n + 1) if n > 0 else 'csv')
+    table_names = choose_table_names(csv_files, based_on_filename=True)
+    for csv_file, table_name in zip(csv_files, table_names):
+        create_table(csv_file, db_cur, table_name)
     db_cur.execute(query)
     header = [col[0] for col in db_cur.description]
     writer = csv.writer(output_fh)
@@ -185,8 +214,8 @@ def interactive_console(csv_files):
 
     db_conn = sqlite3.connect(':memory:')
     db_cur = db_conn.cursor()
-    for n, csv_file in enumerate(csv_files):
-        table_name = 'csv%d' % (n + 1) if n > 0 else 'csv'
+    table_names = choose_table_names(csv_files, based_on_filename=True)
+    for csv_file, table_name in zip(csv_files, table_names):
         create_table(csv_file, db_cur, table_name)
         print "* file '%s' loaded into table '%s'" % (csv_file, table_name)
     console = SQLConsole(db_cur)
