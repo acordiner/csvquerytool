@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='csvquerytool',
-    version='0.0.3',
+    version='0.0.4',
     author='Alister Cordiner',
     author_email='alister@cordiner.net',
     packages=['csvquerytool', 'test'],
