@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='csvquerytool',
@@ -11,4 +11,5 @@ setup(
     license='http://www.gnu.org/licenses/gpl.html',
     description='Execute SQL queries on CSV files.',
     long_description=open('README.rst').read(),
+    test_suite='test',
 )
