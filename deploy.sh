@@ -36,7 +36,7 @@ else
             echo "Error: pypi upload failed (if you manually upload the file, remember to update $VERSION_FILE)" >&2
             exit 1
         fi
-        echo "$latest_version" > $VERSION_FILE
+        echo "$latest_version" > ${VERSION_FILE}
     else
         echo "Error: module version ($module_version) != SCM tag ($latest_version); did you update setup.py and .hgtags?" >&2
         exit 1

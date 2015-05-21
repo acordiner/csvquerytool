@@ -11,7 +11,7 @@ _logger = logging.getLogger(__file__)
 AUTO_RENAME_DUPLICATE_COLUMN_NAMES = True
 DEFAULT_ENCODING = 'UTF-8'
 GUESS_TYPE_FROM_N_ROWS = 10000
-ROW_PADDING_STRING = '' # if a row is truncated, missing cells will be filled in with this string
+ROW_PADDING_STRING = ''  # if a row is truncated, missing cells will be filled in with this string
 
 # TODO: sqlite only natively supports the types TEXT, INTEGER, FLOAT, BLOB and NULL.
 # Support for extra types, such as datetimes, can be added with the detect_types 
@@ -29,11 +29,13 @@ FORMAT_FUNCS = {
     float: lambda x: ("%f" % x).rstrip('0').rstrip('.'),
 }
 
+
 def sqlite_dict_factory(cursor, row):
     d = {}
     for i, col in enumerate(cursor.description):
         d[col[0]] = row[i]
     return d
+
 
 def guess_type(example_data):
     for cast_func, cast_type in CAST_FUNCS:
@@ -42,8 +44,9 @@ def guess_type(example_data):
         except:
             continue
         else:
-            return (cast_func, cast_type)
-    raise ValueError, "could not guess data type from example data: %r" % example_data
+            return cast_func, cast_type
+    raise ValueError("could not guess data type from example data: %r" % example_data)
+
 
 def rename_duplicates(header):
     for col_num in range(len(header)):
@@ -55,6 +58,7 @@ def rename_duplicates(header):
         header[col_num] = col_name
     return header
 
+
 def create_table(csv_file, db_cursor, table_name='csv', pad_rows=True):
 
     _logger.info("creating table '%s' from csv file: %s", table_name, csv_file)
@@ -65,7 +69,7 @@ def create_table(csv_file, db_cursor, table_name='csv', pad_rows=True):
         if AUTO_RENAME_DUPLICATE_COLUMN_NAMES:
             header = rename_duplicates(header)
         elif len(header) != len(set(header)):
-            raise ValueError, "CSV file contains duplicate column names"
+            raise ValueError("CSV file contains duplicate column names")
 
         # guess the types of each column (by sniffing the first GUESS_TYPE_FROM_N_ROWS rows)
         detect_type_rows = list(itertools.islice(reader, GUESS_TYPE_FROM_N_ROWS))
@@ -77,7 +81,7 @@ def create_table(csv_file, db_cursor, table_name='csv', pad_rows=True):
                 try:
                     example_data = [row[col_num].strip() for row in detect_type_rows]
                 except IndexError:
-                    raise ValueError, 'header and data row have different number of columns'
+                    raise ValueError('header and data row have different number of columns')
             cast_func, cast_type = guess_type(example_data)
             guessed_type[col_name] = cast_func
         _logger.info("guessed row types: %r", dict((k, dict(CAST_FUNCS)[v]) for k, v in guessed_type.items()))
@@ -99,18 +103,18 @@ def create_table(csv_file, db_cursor, table_name='csv', pad_rows=True):
         num_rows = 0
         for num_rows, row in enumerate(itertools.chain(detect_type_rows, reader)):
             if pad_rows:
-                padding = [ROW_PADDING_STRING,] * max(0, len(header) - len(row))
+                padding = [ROW_PADDING_STRING] * max(0, len(header) - len(row))
                 row += padding
             elif len(row) != len(header):
-                raise ValueError, 'header and data row have different number of columns'
+                raise ValueError('header and data row have different number of columns')
             sql = "INSERT INTO " + table_name + " VALUES (" + ','.join('?' for _ in row) + ")"
             try:
                 data = [guessed_type[col_name](val.strip()) for col_name, val in zip(header, row)]
             except ValueError, ex:
                 if hasattr(ex, 'encoding'):
-                    raise ValueError, "not a valid '%s' sequence: %r" % (ex.encoding, ex.object)
+                    raise ValueError("not a valid '%s' sequence: %r" % (ex.encoding, ex.object))
                 else:
-                    raise ValueError, "failed to convert row to guessed type, try increasing GUESS_TYPE_FROM_N_ROWS to improve guesses: %s" % ex
+                    raise ValueError("failed to convert row to guessed type, try increasing GUESS_TYPE_FROM_N_ROWS to improve guesses: %s" % ex)
             # TODO: this could probably be sped up with db_cursor.executemany()
             try:
                 db_cursor.execute(sql, data)
@@ -120,6 +124,7 @@ def create_table(csv_file, db_cursor, table_name='csv', pad_rows=True):
             if num_rows > 0 and num_rows % 100000 == 0:
                 _logger.info("loaded %.2f%% of csv file", 100.0 * csv_fh.tell() / file_size)
         _logger.info("inserted %d rows", num_rows)
+
 
 def format_row(row, encoding=DEFAULT_ENCODING):
     """
@@ -134,6 +139,7 @@ def format_row(row, encoding=DEFAULT_ENCODING):
         else:
             row_formatted.append(unicode(cell))
     return [cell.encode(encoding) if hasattr(cell, 'encode') else cell for cell in row_formatted]
+
 
 def choose_table_names(csv_files, based_on_filename=True):
     """
@@ -156,12 +162,14 @@ def choose_table_names(csv_files, based_on_filename=True):
             table_base_name = os.path.splitext(os.path.basename(csv_file))[0]
         else:
             table_base_name = 'csv'
+        table_name = None
         for n in itertools.count():
             table_name = '%s%d' % (table_base_name, n + 1) if n > 0 else table_base_name
             if table_name not in table_names:
                 break
         table_names.append(table_name)
     return table_names
+
 
 def run_query(query, csv_files, output_fh=sys.stdout):
 
@@ -176,6 +184,7 @@ def run_query(query, csv_files, output_fh=sys.stdout):
     writer.writerow(header)
     for row in db_cur:
         writer.writerow(format_row(row))
+
 
 class SQLConsole(cmd.Cmd):
 
@@ -209,6 +218,7 @@ class SQLConsole(cmd.Cmd):
 
     def postloop(self):
         print
+
 
 def interactive_console(csv_files):
 
