@@ -40,20 +40,20 @@ At this point, you will be presented with an interactive SQL console:
 
 ::
 
-    * file 'employees.csv' loaded into table 'csv'
-    * file 'departments.csv' loaded into table 'csv2'
+    * file 'employees.csv' loaded into table 'employees'
+    * file 'departments.csv' loaded into table 'departments'
     SQL Interactive Console
     =>
 
 You can see that the file ``employees.csv`` was loaded into an SQL table named
-``csv`` and the file ``departments.csv`` into a table named ``csv2``. From here,
-you can start running whatever SQL queries you want.
+``employees`` and the file ``departments.csv`` into a table named ``csv2``. From
+here, you can start running whatever SQL queries you want.
 
 Let's select all of the records from the employees table:
 
 ::
 
-    => SELECT * FROM csv
+    => SELECT * FROM employees
     surname,department_id
     Rafferty,31
     Jones,33
@@ -66,7 +66,7 @@ And now let's join the employees table to the departments table:
 
 ::
 
-    => SELECT csv.surname, csv2.department_name FROM csv NATURAL JOIN csv2
+    => SELECT e.surname, d.department_name FROM employees e NATURAL JOIN departments d
     surname,department_name
     Rafferty,Sales
     Jones,Engineering
@@ -81,14 +81,14 @@ useful for scripts, where you can't use the interactive console):
 
 ::
 
-    $ csvquery -q "SELECT csv.surname, csv2.department_name FROM csv NATURAL JOIN csv2" departments.csv
+    $ csvquery -q "SELECT e.surname, d.department_name FROM employees e NATURAL JOIN departments d" employees.csv departments.csv
 
 The output of this command is CSV formatted, so it can be redirected to an 
 output CSV file if required:
 
 ::
 
-    $ csvquery -q "SELECT csv.surname, csv2.department_name FROM csv NATURAL JOIN csv2" departments.csv > employee_departments.csv
+    $ csvquery -q "SELECT e.surname, d.department_name FROM employees e NATURAL JOIN departments d" employees.csv departments.csv > employee_departments.csv
 
 **Warning:** All of the input CSV files are loaded into memory to perform the 
 queries. This means that this module is not appropriate for processing very 
